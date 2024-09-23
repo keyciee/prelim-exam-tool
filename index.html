@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/css/styles.css">
+    <title>Grade Computation Tool</title>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #cd853f, white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 600px;
+            text-align: center;
+            max-width: 90%;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        input[type="number"], input[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        input[type="number"] {
+            background-color: wheat;
+        }
+
+        input[type="number"]:focus {
+            border-color: #66b3ff;
+            background-color: wheat;
+        }
+
+        #computeBtn {
+            width: 100%; 
+            height: 50px; 
+            background-color: sandybrown;  
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer;  
+            font-size: 18px;  
+            transition: background-color 0.3s ease; 
+        }
+
+        #computeBtn:hover {
+            background-color: sienna; 
+        }
+
+        .results-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .deans-vip-box {
+            background-color: #fdf6e3;
+            border: 2px solid gold;
+            border-radius: 10px;
+            padding: 15px;
+            width: 45%;
+            font-size: 18px;
+            color: #333;
+            box-shadow: 0 4px 10px rgba(218, 165, 32, 0.5);
+        }
+
+        .deans-vip-box strong {
+            color: gold;
+        }
+
+        .deans-vip-box:hover {
+            background-color: #fff8dc;
+            border-color: #ffdf00;
+        }
+
+        .result-box {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            width: 48%;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .instruction {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Grade Computation Tool</h1>
+        <form id="gradeForm">
+            <input type="number" id="absences" placeholder="Enter number of absences (0-4)" min="0" max="4" required>
+            <input type="number" id="recitation" placeholder="Enter Recitation grade (0-100)" min="0" max="100" step="0.01" required>
+            <input type="number" id="quiz" placeholder="Enter Quiz grade (0-100)" min="0" max="100" step="0.01" required>
+            <input type="number" id="requirements" placeholder="Enter Requirements grade (0-100)" min="0" max="100" step="0.01" required>
+            <input type="number" id="exam" placeholder="Enter Exam grade (0-100)" min="0" max="100" step="0.01" required>
+            <button type="button" id="computeBtn">Compute</button>
+        </form>
+
+        <div class="results-container">
+            <div class="result-box" id="resultPass">
+                <strong>Passing Requirements:</strong><br>
+            </div>
+            <div class="deans-vip-box" id="resultDeans">
+                <strong>Dean's Lister Requirements:</strong><br>
+            </div>
+        </div>
+    </div>
+
+    <py-script>
+        from pyscript import Element
+
+        def calculate_grades(event):
+            try:
+                absences = int(Element("absences").element.value)
+                recitation = float(Element("recitation").element.value)
+                quiz = float(Element("quiz").element.value)
+                requirements = float(Element("requirements").element.value)
+                exam = float(Element("exam").element.value)
+
+                # handle absences
+                if absences == 4:
+                    Element("resultPass").element.innerHTML = "You have failed the Prelim due to 4 absences."
+                    Element("resultDeans").element.innerHTML = ""
+                    return
+
+                # attendance
+                attendance_grade = 100 - (10 * absences)
+
+                # 30% class standing
+                combined_recitation_quiz_requirements = (recitation * 0.40 + quiz * 0.30 + requirements * 0.30) * 0.30
+                exam_grade = exam * 0.60
+
+                # prelim grade
+                prelim_grade = (attendance_grade * 0.10) + combined_recitation_quiz_requirements + exam_grade
+
+                # 75% and 90%               
+                pass_total = 75
+                deans_total = 90
+
+                prelim_contribution = prelim_grade * 0.20
+
+                # get 75%
+                mid_percentage = (pass_total - prelim_contribution) * (0.30 / (0.30 + 0.50))
+                final_percentage = pass_total - prelim_contribution - mid_percentage
+                midterm_requirement = mid_percentage / 0.30
+                final_requirement = final_percentage / 0.50
+
+                # get 90%
+                mid_deans_percentage = (deans_total - prelim_contribution) * (0.30 / (0.30 + 0.50))
+                final_requirement_deans_percentage = deans_total - prelim_contribution - mid_deans_percentage
+                midterm_requirement_deans = mid_deans_percentage / 0.30
+                final_requirement_deans = final_requirement_deans_percentage / 0.50
+
+                Element("resultPass").element.innerHTML = f"""
+                    Your Prelim grade is: {prelim_grade:.2f}<br>
+                    To pass with this Prelim grade, you need:<br>
+                    - Midterm Grade: {midterm_requirement:.2f}<br>
+                    - Final Grade: {final_requirement:.2f}
+                """
+
+                Element("resultDeans").element.innerHTML = f"""
+                    To achieve Dean's Lister of 90%, you need:<br>
+                    - Midterm Grade: {midterm_requirement_deans:.2f}<br>
+                    - Final Grade: {final_requirement_deans:.2f}
+                """
+
+            except ValueError as e:
+                Element("resultPass").element.innerHTML = str(e)
+                Element("resultDeans").element.innerHTML = ""
+
+        Element("computeBtn").element.onclick = calculate_grades
+    </py-script>
+</body>
+</html>
+
